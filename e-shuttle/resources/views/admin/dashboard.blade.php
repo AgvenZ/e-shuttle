@@ -259,8 +259,8 @@
                             </div>
                             <a id="addNewBtn" href="{{ route('admin.users.create') }}" class="group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 w-fit">
                                 <div class="absolute inset-0 bg-gradient-to-r from-emerald-600 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                <i data-feather="plus" class="w-5 h-5 relative z-10"></i>
-                                <span class="font-semibold relative z-10">Tambah Data</span>
+                                <i id="addBtnIcon" data-feather="plus" class="w-5 h-5 relative z-10"></i>
+                                <span id="addBtnText" class="font-semibold relative z-10">Tambah Data</span>
                             </a>
                         </div>
 
@@ -546,19 +546,89 @@
 
         function updateAddButton() {
             const addBtn = document.getElementById('addNewBtn');
+            const addBtnIcon = document.getElementById('addBtnIcon');
+            const addBtnText = document.getElementById('addBtnText');
             
             if (currentTab === 'users') {
                 addBtn.href = '/admin/users/create';
                 addBtn.onclick = null;
+                addBtn.className = 'group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 w-fit';
+                addBtnIcon.setAttribute('data-feather', 'plus');
+                addBtnText.textContent = 'Tambah Data';
             } else if (currentTab === 'halte') {
                 addBtn.href = '/admin/halte/create';
                 addBtn.onclick = null;
+                addBtn.className = 'group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 w-fit';
+                addBtnIcon.setAttribute('data-feather', 'plus');
+                addBtnText.textContent = 'Tambah Data';
+            } else if (currentTab === 'kerumunan') {
+                addBtn.href = '#';
+                addBtn.onclick = function(e) {
+                    e.preventDefault();
+                    exportKerumunanData();
+                };
+                addBtn.className = 'group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 w-fit';
+                addBtnIcon.setAttribute('data-feather', 'download');
+                addBtnText.textContent = 'Export Data';
             } else {
                 addBtn.href = '#';
                 addBtn.onclick = function(e) {
                     e.preventDefault();
                     openModal('add', currentTab);
                 };
+                addBtn.className = 'group relative overflow-hidden px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 w-fit';
+                addBtnIcon.setAttribute('data-feather', 'plus');
+                addBtnText.textContent = 'Tambah Data';
+            }
+            
+            // Re-render feather icons
+            feather.replace();
+        }
+
+        async function exportKerumunanData() {
+            try {
+                showToast('info', 'Memproses export data kerumunan...');
+                
+                // Call Python backend export endpoint
+                const response = await fetch('http://localhost:5000/export/kerumunan', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Get the filename from response headers
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'laporan_kerumunan.xlsx';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                // Convert response to blob
+                const blob = await response.blob();
+                
+                // Create download link
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showToast('success', 'Data kerumunan berhasil diexport!');
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                showToast('error', 'Gagal mengexport data. Pastikan backend Python berjalan.');
             }
         }
 
