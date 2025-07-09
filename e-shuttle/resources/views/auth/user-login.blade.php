@@ -39,11 +39,8 @@
         <div class="glass-effect rounded-3xl shadow-2xl p-8 space-y-6 border border-white/20">
             <!-- Logo UNNES -->
             <div class="text-center mb-6">
-                <div class="mx-auto w-16 h-16 mb-4">
-                    <svg viewBox="0 0 100 100" class="w-full h-full">
-                        <circle cx="50" cy="50" r="45" fill="#10b981" stroke="white" stroke-width="2"/>
-                        <text x="50" y="58" text-anchor="middle" fill="white" font-size="24" font-weight="bold">U</text>
-                    </svg>
+                <div class="mx-auto w-16 h-16 mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                 </div>
                 <h1 class="text-2xl font-bold text-white mb-2">User Login</h1>
                 <p class="text-white/80 text-sm">Enter your credentials to access your account</p>
@@ -88,13 +85,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input type="checkbox" name="remember" id="remember"
-                               class="h-4 w-4 text-green-400 focus:ring-green-400 border-white/30 rounded bg-white/10 backdrop-blur-sm">
-                        <label for="remember" class="ml-2 block text-sm text-white/80">Remember me</label>
-                    </div>
-                </div>
+
 
                 <button type="submit"
                         class="w-full flex items-center justify-center py-3 px-6 backdrop-blur-sm bg-gradient-to-r from-green-400 to-green-600 border border-green-400/30 rounded-xl shadow-lg text-white font-medium transition-all duration-300 hover:from-green-500 hover:to-green-700 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400/50 group">

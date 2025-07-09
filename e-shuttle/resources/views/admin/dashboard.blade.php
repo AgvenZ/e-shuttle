@@ -27,21 +27,8 @@
             <div class="flex flex-col items-center justify-center h-20 px-4 border-b border-gray-200/50 dark:border-gray-700/50 gradient-bg">
                 <!-- UNNES Logo -->
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
-                        <svg viewBox="0 0 100 100" class="w-8 h-8">
-                            <defs>
-                                <linearGradient id="unnesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-                                    <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
-                                </linearGradient>
-                            </defs>
-                            <!-- Simplified UNNES Logo -->
-                            <circle cx="50" cy="50" r="45" fill="url(#unnesGradient)"/>
-                            <path d="M30 25 Q50 15 70 25 Q65 35 50 40 Q35 35 30 25" fill="#1E40AF"/>
-                            <path d="M25 35 Q50 25 75 35 Q70 45 50 50 Q30 45 25 35" fill="#1E40AF"/>
-                            <path d="M20 45 Q50 35 80 45 Q75 55 50 60 Q25 55 20 45" fill="#1E40AF"/>
-                            <circle cx="50" cy="70" r="15" fill="#1E40AF"/>
-                        </svg>
+                    <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                        <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                     </div>
                     <div class="text-white">
                         <h1 class="text-lg font-bold leading-tight">E-Shuttle</h1>
@@ -129,14 +116,8 @@
                         </button>
                         <!-- Logo UNNES -->
                         <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
-                                <svg viewBox="0 0 100 100" class="w-8 h-8 text-white">
-                                    <path d="M50 10 L60 30 L50 25 L40 30 Z" fill="currentColor"/>
-                                    <path d="M30 20 C30 20, 35 35, 50 40 C65 35, 70 20, 70 20 C70 30, 65 45, 50 50 C35 45, 30 30, 30 20" fill="currentColor"/>
-                                    <path d="M25 30 C25 30, 30 45, 50 55 C70 45, 75 30, 75 30 C75 40, 70 55, 50 65 C30 55, 25 40, 25 30" fill="currentColor"/>
-                                    <path d="M20 40 C20 40, 25 55, 50 70 C75 55, 80 40, 80 40 C80 50, 75 65, 50 80 C25 65, 20 50, 20 40" fill="currentColor"/>
-                                    <circle cx="50" cy="85" r="8" fill="currentColor"/>
-                                </svg>
+                            <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                             </div>
                             <div>
                                 <h1 id="pageTitle" class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Dashboard</h1>
@@ -425,12 +406,37 @@
         let marker = null;
         let currentView = 'dashboard'; // 'dashboard' or 'dataManagement'
         let deleteItemId = null;
+        let cctvMap = null;
+        let cctvMarkers = [];
 
         // Initialize the dashboard
         document.addEventListener('DOMContentLoaded', function() {
             feather.replace();
             loadExternalData();
             showDashboard(); // Show dashboard by default
+            
+            // Initialize CCTV map with delay to ensure DOM is ready
+            setTimeout(() => {
+                if (document.getElementById('cctvMap')) {
+                    initCCTVMap();
+                }
+            }, 500);
+            
+            // Add event listener for map buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-action="show-map"]')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const button = e.target.closest('[data-action="show-map"]');
+                    const lat = parseFloat(button.getAttribute('data-lat'));
+                    const lng = parseFloat(button.getAttribute('data-lng'));
+                    const name = button.getAttribute('data-name').replace(/&apos;/g, "'");
+                    
+                    console.log('Map button clicked:', lat, lng, name);
+                    showLocationOnMap(lat, lng, name);
+                }
+            });
         });
 
         // Navigation functions
@@ -685,12 +691,14 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${new Date(item.created_at).toLocaleDateString('id-ID')}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="/admin/users/${item.id}/edit" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3" title="Edit">
-                                    <i data-feather="edit" class="w-4 h-4"></i>
-                                </a>
-                                <button onclick="openConfirmModal(${item.id})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
-                                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <div class="flex items-center space-x-2">
+                                    <a href="/admin/users/${item.id}/edit" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Edit">
+                                        <i data-feather="edit" class="w-4 h-4"></i>
+                                    </a>
+                                    <button onclick="openConfirmModal(${item.id})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
+                                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -709,12 +717,14 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button onclick="openModal('edit', 'kerumunan', ${JSON.stringify(item).replace(/"/g, '&quot;')})" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3" title="Edit">
-                                    <i data-feather="edit" class="w-4 h-4"></i>
-                                </button>
-                                <button onclick="openConfirmModal(${item.id_kerumunan})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
-                                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="openModal('edit', 'kerumunan', ${JSON.stringify(item).replace(/"/g, '&quot;')})" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Edit">
+                                        <i data-feather="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="openConfirmModal(${item.id_kerumunan})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
+                                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -724,19 +734,32 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${item.id_halte || '-'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">${item.nama_halte}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                <span class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded">
-                                    ${item.cctv_url ? 'Ada CCTV' : 'Tidak ada CCTV'}
-                                </span>
+                                ${item.cctv && item.cctv.trim() !== '' ? 
+                                    '<span class="px-2 py-1 text-xs bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded-full font-medium">CCTV Aktif</span>' : 
+                                    '<span class="px-2 py-1 text-xs bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full font-medium">CCTV Tidak Aktif</span>'
+                                }
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${item.latitude || '-'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">${item.longitude || '-'}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="/admin/halte/${item.id_halte}/edit" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3" title="Edit">
-                                    <i data-feather="edit" class="w-4 h-4"></i>
-                                </a>
-                                <button onclick="openConfirmModal(${item.id_halte})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
-                                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                                </button>
+                                <div class="flex items-center space-x-2">
+                                    ${item.cctv && item.cctv.trim() !== '' ? 
+                                        `<a href="${item.cctv}" target="_blank" class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300" title="Buka CCTV">
+                                            <i data-feather="video" class="w-4 h-4"></i>
+                                        </a>` : ''
+                                    }
+                                    ${item.latitude && item.longitude ? 
+                                        `<button type="button" data-action="show-map" data-lat="${item.latitude}" data-lng="${item.longitude}" data-name="${item.nama_halte.replace(/'/g, '&apos;')}" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300" title="Lihat di Peta">
+                                            <i data-feather="map-pin" class="w-4 h-4"></i>
+                                        </button>` : ''
+                                    }
+                                    <a href="/admin/halte/${item.id_halte}/edit" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="Edit">
+                                        <i data-feather="edit" class="w-4 h-4"></i>
+                                    </a>
+                                    <button onclick="openConfirmModal(${item.id_halte})" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300" title="Hapus">
+                                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -781,7 +804,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">URL CCTV</label>
-                        <input type="url" id="cctv_url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" value="${item ? item.cctv_url : ''}" required>
+                        <input type="url" id="cctv_url" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" value="${item ? item.cctv : ''}" required>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
@@ -855,8 +878,11 @@
                     response = await fetch(`/api/users/${deleteItemId}`, {
                         method: 'DELETE',
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        }
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
                     });
                 } else {
                     const endpoints = {
@@ -865,7 +891,12 @@
                     };
                     
                     response = await fetch(`${endpoints[currentTab]}/${deleteItemId}`, {
-                        method: 'DELETE'
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
                     });
                 }
                 
@@ -875,11 +906,9 @@
                     showToast('success', 'Data berhasil dihapus!');
                     closeConfirmModal();
                     
-                    if (currentTab === 'users') {
-                        window.location.reload();
-                    } else {
-                        await loadExternalData();
-                    }
+                    // Reload data and update table for all types
+                    await loadExternalData();
+                    updateTable();
                 } else {
                     throw new Error(result.message || 'Gagal menghapus data');
                 }
@@ -1071,6 +1100,167 @@
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 3000);
+        }
+
+        // Function to show location on map
+        function showLocationOnMap(latitude, longitude, halteName) {
+            console.log('showLocationOnMap called with:', latitude, longitude, halteName);
+            
+            // Check if Leaflet is loaded
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library not loaded');
+                alert('Error: Peta tidak dapat dimuat. Silakan refresh halaman.');
+                return;
+            }
+            
+            // Create a modal for showing the map
+            const mapModal = document.createElement('div');
+            mapModal.id = 'mapModal';
+            mapModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            mapModal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-11/12 h-5/6 max-w-4xl">
+                    <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Lokasi Halte: ${halteName}</h3>
+                        <button onclick="closeMapModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <i data-feather="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 h-full">
+                        <div id="locationMap" class="w-full h-5/6 rounded-lg"></div>
+                        <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                            <p><strong>Koordinat:</strong> ${latitude}, ${longitude}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(mapModal);
+            feather.replace();
+            
+            // Initialize the map
+            setTimeout(() => {
+                try {
+                    const locationMap = L.map('locationMap').setView([latitude, longitude], 16);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(locationMap);
+                    
+                    // Add marker for the halte location
+                    const marker = L.marker([latitude, longitude]).addTo(locationMap);
+                    marker.bindPopup(`<b>${halteName}</b><br>Lat: ${latitude}<br>Lng: ${longitude}`).openPopup();
+                    
+                    console.log('Map initialized successfully');
+                } catch (error) {
+                    console.error('Error initializing map:', error);
+                    alert('Error: Gagal menginisialisasi peta.');
+                }
+            }, 100);
+        }
+
+        // Function to close map modal
+        function closeMapModal() {
+            const mapModal = document.getElementById('mapModal');
+            if (mapModal) {
+                mapModal.remove();
+            }
+        }
+
+        // Initialize CCTV Map
+        function initCCTVMap() {
+            if (cctvMap) {
+                cctvMap.remove();
+            }
+            
+            cctvMap = L.map('cctvMap').setView([-7.050570, 110.414650], 16);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(cctvMap);
+
+            // Load CCTV locations
+            loadCCTVLocations();
+        }
+
+        // Load CCTV locations from halte API (same as user dashboard)
+        async function loadCCTVLocations() {
+            try {
+                const response = await fetch('/api/halte');
+                const result = await response.json();
+                
+                const isSuccess = result.success || (result.meta && result.meta.status === 'success');
+                const data = result.data || [];
+                
+                if (isSuccess && data) {
+                    data.forEach(location => {
+                        if (location.latitude && location.longitude) {
+                            const hasActiveCctv = location.cctv && location.cctv.trim() !== '';
+                            
+                            // Create custom camera icon (same as user dashboard)
+                            const cameraIcon = L.divIcon({
+                                html: `<div style="background: ${hasActiveCctv ? 'green' : 'red'}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+                                iconSize: [20, 20],
+                                className: 'custom-div-icon'
+                            });
+                            
+                            const marker = L.marker([location.latitude, location.longitude], { icon: cameraIcon })
+                                .addTo(cctvMap)
+                                .bindPopup(`
+                                    <div class="p-3">
+                                        <h3 class="font-semibold text-gray-900 mb-2">${location.nama_halte}</h3>
+                                        <p class="text-sm text-gray-600 mb-3">
+                                            Koordinat: ${location.latitude}, ${location.longitude}
+                                        </p>
+                                        ${hasActiveCctv ? `
+                                            <a href="${location.cctv}" target="_blank" 
+                                               class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
+                                                <span style="margin-right: 8px;">🔗</span>
+                                                Lihat CCTV
+                                            </a>
+                                        ` : '<p class="text-sm text-gray-500">URL CCTV tidak tersedia</p>'}
+                                    </div>
+                                `);
+                        }
+                    });
+                    
+                    // Update CCTV statistics with real data
+                    updateCCTVStatistics(data);
+                }
+            } catch (error) {
+                console.error('Error loading CCTV locations:', error);
+            }
+        }
+
+        // Update CCTV statistics with real data
+        function updateCCTVStatistics(locations) {
+            const totalLocations = locations.length;
+            const activeCameras = locations.filter(location => location.cctv && location.cctv.trim() !== '').length;
+            const inactiveCameras = totalLocations - activeCameras;
+            const coveragePercentage = totalLocations > 0 ? Math.round((activeCameras / totalLocations) * 100) : 0;
+            
+            // Update statistics elements
+            const totalElement = document.getElementById('cctvTotalLocations');
+            const activeElement = document.getElementById('cctvActiveCameras');
+            const inactiveElement = document.getElementById('cctvInactiveCameras');
+            const coverageElement = document.getElementById('cctvCoverageArea');
+            const updateElement = document.getElementById('cctvLastUpdate');
+            
+            if (totalElement) totalElement.textContent = totalLocations;
+            if (activeElement) activeElement.textContent = activeCameras;
+            if (inactiveElement) inactiveElement.textContent = inactiveCameras;
+            if (coverageElement) coverageElement.textContent = coveragePercentage + '%';
+            
+            if (updateElement) {
+                const now = new Date();
+                const timeString = now.toLocaleString('id-ID', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                updateElement.textContent = timeString;
+            }
         }
     </script>
 </body>

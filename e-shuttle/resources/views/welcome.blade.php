@@ -47,18 +47,8 @@
         <div class="glass-effect rounded-3xl shadow-2xl p-8 md:p-12 space-y-8 border border-white/20">
             <!-- Logo UNNES -->
             <div class="flex justify-center mb-6">
-                <div class="w-20 h-20 pulse-animation">
-                    <svg viewBox="0 0 100 100" class="w-full h-full">
-                        <defs>
-                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                                <stop offset="50%" style="stop-color:#1d4ed8;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
-                            </linearGradient>
-                        </defs>
-                        <circle cx="50" cy="50" r="45" fill="url(#logoGradient)" stroke="white" stroke-width="2"/>
-                        <text x="50" y="58" text-anchor="middle" fill="white" font-size="20" font-weight="bold">UNNES</text>
-                    </svg>
+                <div class="w-20 h-20 pulse-animation bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                 </div>
             </div>
 

@@ -37,10 +37,8 @@
                     <div class="flex items-center space-x-6">
                         <!-- Logo UNNES -->
                         <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-                                <svg class="w-8 h-8 text-yellow-400" viewBox="0 0 100 100" fill="currentColor">
-                                    <path d="M50 10 L60 30 L80 25 L70 45 L90 50 L70 55 L80 75 L60 70 L50 90 L40 70 L20 75 L30 55 L10 50 L30 45 L20 25 L40 30 Z"/>
-                                </svg>
+                            <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                                <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                             </div>
                             <div>
                                 <h1 class="text-xl font-bold text-white">UNNES</h1>
@@ -116,6 +114,10 @@
                             <span id="successText" class="font-medium"></span>
                         </div>
 
+                        @if(isset($halte))
+                            <input type="hidden" id="halte_id" value="{{ $halte->id }}">
+                        @endif
+                        
                         <div class="grid grid-cols-1 gap-8">
                             <!-- Nama Halte -->
                             <div class="space-y-3">
@@ -127,7 +129,7 @@
                                     <input type="text" id="nama_halte" name="nama_halte" required
                                         class="w-full px-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300 hover:bg-white/15"
                                         placeholder="Masukkan nama halte"
-                                        value="{{ isset($halte) ? $halte['nama_halte'] : '' }}">
+                                        value="{{ isset($halte) ? $halte->nama_halte : '' }}">
                                     <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 transition-opacity duration-300 pointer-events-none hover:opacity-100"></div>
                                 </div>
                             </div>
@@ -142,7 +144,7 @@
                                     <input type="url" id="cctv_url" name="cctv_url" required
                                         class="w-full px-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300 hover:bg-white/15"
                                         placeholder="https://example.com/stream"
-                                        value="{{ isset($halte) ? $halte['cctv_url'] : '' }}">
+                                        value="{{ isset($halte) ? $halte->cctv : '' }}">
                                     <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 transition-opacity duration-300 pointer-events-none hover:opacity-100"></div>
                                 </div>
                                 <p class="text-xs text-white/70 flex items-center mt-2">
@@ -162,7 +164,7 @@
                                         <input type="number" step="any" id="latitude" name="latitude" required readonly
                                             class="w-full px-4 py-4 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300"
                                             placeholder="-6.200000"
-                                            value="{{ isset($halte) ? $halte['latitude'] : '' }}">
+                                            value="{{ isset($halte) ? $halte->latitude : '' }}">
                                         <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 opacity-100 pointer-events-none"></div>
                                     </div>
                                 </div>
@@ -175,7 +177,7 @@
                                         <input type="number" step="any" id="longitude" name="longitude" required readonly
                                             class="w-full px-4 py-4 bg-white/5 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300"
                                             placeholder="106.816666"
-                                            value="{{ isset($halte) ? $halte['longitude'] : '' }}">
+                                            value="{{ isset($halte) ? $halte->longitude : '' }}">
                                         <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 opacity-100 pointer-events-none"></div>
                                     </div>
                                 </div>
@@ -242,7 +244,7 @@
         let map;
         let marker;
         const isEdit = {{ isset($halte) ? 'true' : 'false' }};
-        const halteId = isEdit ? document.getElementById('halte_id').value : null;
+        const halteId = isEdit ? {{ isset($halte) ? $halte->id : 'null' }} : null;
 
         // Initialize map
         function initMap() {
@@ -354,7 +356,7 @@
             try {
                 const data = {
                     nama_halte: namaHalte,
-                    cctv_url: cctvUrl,
+                    cctv: cctvUrl,
                     latitude: parseFloat(latitude),
                     longitude: parseFloat(longitude)
                 };

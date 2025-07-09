@@ -35,25 +35,14 @@
     </div>
 
     <div class="max-w-md w-full relative z-10">
-        <div class="glass-effect rounded-3xl shadow-2xl p-8 space-y-8 border border-white/20">
+        <div class="glass-effect rounded-3xl shadow-2xl p-8 space-y-6 border border-white/20">
             <!-- Logo and Header -->
-            <div class="text-center space-y-4">
-                <div class="flex justify-center">
-                    <div class="w-20 h-20 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
-                        <svg class="w-12 h-12 text-white" viewBox="0 0 100 100" fill="currentColor">
-                            <path d="M50 10 L60 30 L80 25 L70 45 L90 50 L70 55 L80 75 L60 70 L50 90 L40 70 L20 75 L30 55 L10 50 L30 45 L20 25 L40 30 Z"/>
-                        </svg>
-                    </div>
+            <div class="text-center mb-6">
+                <div class="mx-auto w-16 h-16 mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                 </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-white">UNNES</h1>
-                    <p class="text-white/80 font-medium">E-Shuttle Admin</p>
-                </div>
-                <div class="h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-                <div>
-                    <h2 class="text-xl font-semibold text-white">Admin Login</h2>
-                    <p class="mt-2 text-sm text-white/70">Enter your credentials to access the admin dashboard</p>
-                </div>
+                <h1 class="text-2xl font-bold text-white mb-2">Admin Login</h1>
+                <p class="text-white/80 text-sm">Enter your credentials to access the admin dashboard</p>
             </div>
 
             @if ($errors->any())
@@ -69,51 +58,45 @@
 
             <form method="POST" action="{{ route('admin.login.submit') }}" class="space-y-6">
                 @csrf
-                <div class="space-y-3">
-                    <label for="email" class="flex items-center text-sm font-semibold text-white mb-3">
-                        <i data-feather="mail" class="w-4 h-4 mr-2 text-blue-400"></i>
+                <div class="space-y-2">
+                    <label for="email" class="flex items-center text-sm font-medium text-white/90 mb-2">
+                        <i data-feather="mail" class="w-4 h-4 mr-2"></i>
                         Email Address
                     </label>
                     <div class="relative">
                         <input type="email" name="email" id="email" required
-                               class="w-full px-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300 hover:bg-white/15"
+                               class="w-full px-4 py-3 backdrop-blur-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
                                placeholder="admin@example.com">
-                        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 transition-opacity duration-300 pointer-events-none hover:opacity-100"></div>
+                        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                 </div>
 
-                <div class="space-y-3">
-                    <label for="password" class="flex items-center text-sm font-semibold text-white mb-3">
-                        <i data-feather="lock" class="w-4 h-4 mr-2 text-green-400"></i>
+                <div class="space-y-2">
+                    <label for="password" class="flex items-center text-sm font-medium text-white/90 mb-2">
+                        <i data-feather="lock" class="w-4 h-4 mr-2"></i>
                         Password
                     </label>
                     <div class="relative">
                         <input type="password" name="password" id="password" required
-                               class="w-full px-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-white placeholder-white/60 transition-all duration-300 hover:bg-white/15"
+                               class="w-full px-4 py-3 backdrop-blur-sm bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
                                placeholder="••••••••">
-                        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 transition-opacity duration-300 pointer-events-none hover:opacity-100"></div>
+                        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <input type="checkbox" name="remember" id="remember"
-                               class="h-4 w-4 text-blue-400 focus:ring-blue-400 border-white/20 rounded bg-white/10 backdrop-blur-sm">
-                        <label for="remember" class="text-sm text-white/80 font-medium">Remember me</label>
-                    </div>
-                </div>
+
 
                 <button type="submit"
-                        class="group w-full flex justify-center items-center space-x-2 py-4 px-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 border border-blue-400/30">
-                        <i data-feather="log-in" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                        <span>Sign in</span>
+                        class="w-full flex items-center justify-center py-3 px-6 backdrop-blur-sm bg-gradient-to-r from-green-400 to-green-600 border border-green-400/30 rounded-xl shadow-lg text-white font-medium transition-all duration-300 hover:from-green-500 hover:to-green-700 hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400/50 group">
+                    <i data-feather="log-in" class="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300"></i>
+                    Sign in
                 </button>
             </form>
 
             <div class="text-center mt-6">
-                <a href="{{ route('welcome') }}" class="group inline-flex items-center space-x-2 text-sm text-white/70 hover:text-white transition-all duration-300">
-                    <i data-feather="arrow-left" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-                    <span class="font-medium">Back to Welcome Page</span>
+                <a href="{{ route('welcome') }}" class="inline-flex items-center text-sm text-white/70 hover:text-white transition-all duration-300 hover:scale-105 group">
+                    <i data-feather="arrow-left" class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-300"></i>
+                    Back to Welcome Page
                 </a>
             </div>
         </div>

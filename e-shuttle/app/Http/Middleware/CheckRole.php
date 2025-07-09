@@ -19,14 +19,27 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         if (!$request->user()) {
-            return redirect()->route('welcome')->with('error', 'Please login first.');
+            // Store intended URL in session
+            $request->session()->put('url.intended', $request->url());
+            
+            if ($role === 'admin') {
+                return redirect()->route('admin.login')->with('error', 'Please login as admin first.');
+            } else {
+                return redirect()->route('user.login')->with('error', 'Please login first.');
+            }
         }
 
         if ($request->user()->role !== $role) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthorized.'], 403);
             }
-            return redirect()->route('welcome')->with('error', 'Unauthorized access.');
+            
+            // Redirect to appropriate dashboard based on user's actual role
+            if ($request->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard')->with('error', 'Access denied for this section.');
+            } else {
+                return redirect()->route('user.dashboard')->with('error', 'Access denied for this section.');
+            }
         }
 
         return $next($request);

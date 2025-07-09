@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\Halte;
+use App\Models\Kerumunan;
 use Illuminate\View\View;
 use Exception;
 
@@ -57,24 +59,27 @@ class DashboardController extends Controller
     }
     
     /**
-     * Get kerumunan data from Python backend API
+     * Get kerumunan data from Laravel database
      */
     public function getKerumunanData()
     {
         try {
-            $response = file_get_contents('http://localhost:5000/kerumunan');
-            $data = json_decode($response, true);
+            $kerumunanData = Kerumunan::with('halte')->orderBy('waktu', 'desc')->get();
             
-            if ($data && isset($data['data'])) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $data['data']
-                ]);
-            }
+            // Transform data to match expected format
+            $transformedData = $kerumunanData->map(function ($kerumunan) {
+                return [
+                    'id_kerumunan' => $kerumunan->id_kerumunan,
+                    'id_halte' => $kerumunan->id_halte,
+                    'nama_halte' => $kerumunan->halte ? $kerumunan->halte->nama_halte : 'Unknown',
+                    'waktu' => $kerumunan->waktu,
+                    'jumlah_kerumunan' => $kerumunan->jumlah_kerumunan
+                ];
+            });
             
             return response()->json([
-                'success' => false,
-                'message' => 'No data found'
+                'success' => true,
+                'data' => $transformedData
             ]);
         } catch (Exception $e) {
             return response()->json([
@@ -85,24 +90,27 @@ class DashboardController extends Controller
     }
     
     /**
-     * Get halte data from Python backend API
+     * Get halte data from Laravel database
      */
     public function getHalteData()
     {
         try {
-            $response = file_get_contents('http://localhost:5000/halte');
-            $data = json_decode($response, true);
+            $halteData = Halte::all();
             
-            if ($data && isset($data['data'])) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $data['data']
-                ]);
-            }
+            // Transform data to match expected format
+            $transformedData = $halteData->map(function ($halte) {
+                return [
+                    'id_halte' => $halte->id,
+                    'nama_halte' => $halte->nama_halte,
+                    'cctv' => $halte->cctv,
+                    'latitude' => $halte->latitude,
+                    'longitude' => $halte->longitude
+                ];
+            });
             
             return response()->json([
-                'success' => false,
-                'message' => 'No data found'
+                'success' => true,
+                'data' => $transformedData
             ]);
         } catch (Exception $e) {
             return response()->json([
@@ -120,10 +128,74 @@ class DashboardController extends Controller
         /** @var User $user */
         $user = Auth::user();
         
+        // Get CCTV statistics from halte data
+        $cctvStats = $this->getCctvStatistics();
+        
+        // Get recent kerumunan data for monitoring (read-only)
+        $recentKerumunan = Kerumunan::with('halte')
+            ->orderBy('waktu', 'desc')
+            ->limit(10)
+            ->get();
+            
+        // Get halte data for map view (read-only)
+        $halteData = Halte::all();
+        
+        // Calculate statistics for user dashboard
+        $stats = [
+            'total_halte' => Halte::count(),
+            'active_cctv' => Halte::whereNotNull('cctv')->where('cctv', '!=', '')->count(),
+            'total_kerumunan_today' => Kerumunan::whereDate('waktu', today())->count(),
+        ];
+        
         return view('user.dashboard', [
             'user' => $user,
             'account_status' => 'Active',
+            'recent_kerumunan' => $recentKerumunan,
+            'halte_data' => $halteData,
+            'stats' => $stats,
+            'cctv_stats' => $cctvStats
         ]);
+    }
+    
+    /**
+     * Get CCTV statistics from halte data
+     */
+    private function getCctvStatistics()
+    {
+        try {
+            $locations = Halte::all();
+            $totalLocations = $locations->count();
+            $activeCameras = 0;
+            
+            foreach ($locations as $location) {
+                if (!empty(trim($location->cctv))) {
+                    $activeCameras++;
+                }
+            }
+            
+            $inactiveCameras = $totalLocations - $activeCameras;
+            $coveragePercentage = $totalLocations > 0 ? round(($activeCameras / $totalLocations) * 100) : 0;
+            
+            return [
+                'total_locations' => $totalLocations,
+                'active_cameras' => $activeCameras,
+                'inactive_cameras' => $inactiveCameras,
+                'coverage_area' => $coveragePercentage . '%',
+                'last_update' => now()->diffForHumans()
+            ];
+        } catch (Exception $e) {
+            // Log error but don't show fallback data
+            error_log('Failed to fetch CCTV data: ' . $e->getMessage());
+            
+            // Return empty data if database fails
+            return [
+                'total_locations' => 0,
+                'active_cameras' => 0,
+                'inactive_cameras' => 0,
+                'coverage_area' => '0%',
+                'last_update' => '-'
+            ];
+        }
     }
     
     /**
@@ -259,34 +331,25 @@ class DashboardController extends Controller
                 ], 422);
             }
             
-            // Send data to Python backend
-            $data = [
+            // Save data to Laravel database
+            $halte = Halte::create([
                 'nama_halte' => $request->nama_halte,
                 'latitude' => (float) $request->latitude,
                 'longitude' => (float) $request->longitude,
                 'cctv' => $request->cctv
-            ];
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($data)
-                ]
             ]);
             
-            $response = file_get_contents('http://localhost:5000/halte', false, $context);
-            $result = json_decode($response, true);
-            
-            if ($result && isset($result['message'])) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Halte location created successfully',
-                    'data' => $result
-                ]);
-            }
-            
-            throw new Exception('Failed to create halte location');
+            return response()->json([
+                'success' => true,
+                'message' => 'Halte location created successfully',
+                'data' => [
+                    'id_halte' => $halte->id,
+                    'nama_halte' => $halte->nama_halte,
+                    'cctv' => $halte->cctv,
+                    'latitude' => $halte->latitude,
+                    'longitude' => $halte->longitude
+                ]
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -316,34 +379,26 @@ class DashboardController extends Controller
                 ], 422);
             }
             
-            // Send data to Python backend
-            $data = [
+            // Update data in Laravel database
+            $halte = Halte::findOrFail($id);
+            $halte->update([
                 'nama_halte' => $request->nama_halte,
                 'latitude' => (float) $request->latitude,
                 'longitude' => (float) $request->longitude,
                 'cctv' => $request->cctv
-            ];
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'PUT',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($data)
-                ]
             ]);
             
-            $response = file_get_contents("http://localhost:5000/halte/{$id}", false, $context);
-            $result = json_decode($response, true);
-            
-            if ($result && isset($result['message'])) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Halte location updated successfully',
-                    'data' => $result
-                ]);
-            }
-            
-            throw new Exception('Failed to update halte location');
+            return response()->json([
+                'success' => true,
+                'message' => 'Halte location updated successfully',
+                'data' => [
+                    'id_halte' => $halte->id,
+                    'nama_halte' => $halte->nama_halte,
+                    'cctv' => $halte->cctv,
+                    'latitude' => $halte->latitude,
+                    'longitude' => $halte->longitude
+                ]
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -358,23 +413,13 @@ class DashboardController extends Controller
     public function deleteHalte($id)
     {
         try {
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'DELETE'
-                ]
+            $halte = Halte::findOrFail($id);
+            $halte->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Halte location deleted successfully'
             ]);
-            
-            $response = file_get_contents("http://localhost:5000/halte/{$id}", false, $context);
-            $result = json_decode($response, true);
-            
-            if ($result && isset($result['message'])) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Halte location deleted successfully'
-                ]);
-            }
-            
-            throw new Exception('Failed to delete halte location');
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -413,17 +458,9 @@ class DashboardController extends Controller
      */
     public function editHalteForm($id): View
     {
-        // Get halte data from Python backend
         try {
-            $response = file_get_contents("http://localhost:5000/halte/{$id}");
-            $result = json_decode($response, true);
-            
-            if ($result && isset($result['data'])) {
-                $halte = $result['data'];
-                return view('admin.halte.form', compact('halte'));
-            }
-            
-            throw new Exception('Halte not found');
+            $halte = Halte::findOrFail($id);
+            return view('admin.halte.form', compact('halte'));
         } catch (Exception $e) {
             abort(404, 'Halte not found');
         }

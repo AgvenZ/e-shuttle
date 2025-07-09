@@ -16,7 +16,6 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('web');
         $this->middleware('auth')->only(['logout']);
     }
 
@@ -54,18 +53,36 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             /** @var User $user */
             $user = Auth::user();
             
             if ($user->isAdmin()) {
                 $request->session()->regenerate();
-                return redirect()->intended('admin/dashboard');
+                
+                // Get intended URL or default to admin dashboard
+                $intendedUrl = $request->session()->pull('url.intended', route('admin.dashboard'));
+                
+                // Ensure the intended URL is for admin routes
+                if (str_contains($intendedUrl, '/admin/')) {
+                    return redirect($intendedUrl);
+                }
+                
+                return redirect()->route('admin.dashboard');
             }
             
+            // Don't logout, just redirect to appropriate dashboard
+            if ($user->isUser()) {
+                return redirect()->route('user.dashboard')->with('info', 'You are logged in as a user. Please use the user login page.');
+            }
+            
+            // If role is neither admin nor user, logout
             Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
             return back()->withErrors([
-                'email' => 'These credentials do not match our records for admin.',
+                'email' => 'Your account does not have admin privileges.',
             ]);
         }
 
@@ -84,18 +101,36 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             /** @var User $user */
             $user = Auth::user();
             
             if ($user->isUser()) {
                 $request->session()->regenerate();
-                return redirect()->intended('user/dashboard');
+                
+                // Get intended URL or default to user dashboard
+                $intendedUrl = $request->session()->pull('url.intended', route('user.dashboard'));
+                
+                // Ensure the intended URL is for user routes
+                if (str_contains($intendedUrl, '/user/')) {
+                    return redirect($intendedUrl);
+                }
+                
+                return redirect()->route('user.dashboard');
             }
             
+            // Don't logout, just redirect to appropriate dashboard
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard')->with('info', 'You are logged in as an admin. Please use the admin login page.');
+            }
+            
+            // If role is neither admin nor user, logout
             Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
             return back()->withErrors([
-                'email' => 'These credentials do not match our records for user.',
+                'email' => 'Your account does not have user privileges.',
             ]);
         }
 

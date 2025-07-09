@@ -53,11 +53,8 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center space-x-4">
                         <!-- Logo UNNES -->
-                        <div class="w-10 h-10">
-                            <svg viewBox="0 0 100 100" class="w-full h-full">
-                                <circle cx="50" cy="50" r="45" fill="white" stroke="#667eea" stroke-width="2"/>
-                                <text x="50" y="58" text-anchor="middle" fill="#667eea" font-size="20" font-weight="bold">U</text>
-                            </svg>
+                        <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+                            <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                         </div>
                         <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2 text-white/80 hover:text-white hover:scale-105 transition-all duration-300">
                             <i data-feather="arrow-left" class="w-5 h-5"></i>
@@ -65,13 +62,7 @@
                         </a>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <span class="text-sm text-white/80">{{ $user->name }}</span>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="text-red-300 hover:text-red-100 hover:scale-110 transition-all duration-300">
-                                <i data-feather="log-out" class="w-5 h-5"></i>
-                            </button>
-                        </form>
+                        <!-- Navigation items removed -->
                     </div>
                 </div>
             </div>
@@ -100,9 +91,11 @@
                 <!-- Map Section -->
                 <div class="lg:col-span-2">
                     <div class="glass-effect rounded-3xl shadow-2xl border border-white/20 p-6">
-                        <div class="flex items-center space-x-3 mb-6">
-                            <i data-feather="map-pin" class="w-6 h-6 text-white"></i>
-                            <h2 class="text-xl font-semibold text-white">Peta Lokasi UNNES</h2>
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center space-x-3">
+                                <i data-feather="map-pin" class="w-6 h-6 text-white"></i>
+                                <h2 class="text-xl font-semibold text-white">Peta Lokasi UNNES</h2>
+                            </div>
                         </div>
                         <div id="map" class="shadow-xl"></div>
                         <div class="flex items-center mt-4 text-sm text-white/70">
@@ -175,7 +168,7 @@
                                         </div>
                                         <span class="text-sm font-medium text-white">Area Cakupan</span>
                                     </div>
-                                    <span class="text-2xl font-bold text-purple-300">1 km</span>
+                                    <span id="coverageArea" class="text-2xl font-bold text-purple-300">0%</span>
                                 </div>
                             </div>
                         </div>
@@ -246,28 +239,42 @@
 
                     data.forEach(location => {
                         if (location.latitude && location.longitude) {
-                            // Create custom red camera icon
-                            const cameraIcon = L.divIcon({
-                                html: '<div style="background: red; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
-                                iconSize: [20, 20],
-                                className: 'custom-div-icon'
-                            });
-
-                            const marker = L.marker([location.latitude, location.longitude], { icon: cameraIcon })
+                            const marker = L.marker([location.latitude, location.longitude])
                                 .addTo(map)
                                 .bindPopup(`
-                                    <div class="p-3">
-                                        <h3 class="font-semibold text-gray-900 mb-2">${location.nama_halte}</h3>
-                                        <p class="text-sm text-gray-600 mb-3">
-                                            Koordinat: ${location.latitude}, ${location.longitude}
-                                        </p>
+                                    <div class="p-3 min-w-64">
+                                        <h3 class="font-bold text-lg mb-2">${location.nama_halte}</h3>
+                                        <div class="mb-3 space-y-1">
+                                            <p class="text-sm text-gray-600">Status CCTV: 
+                                                <span class="font-semibold ${location.cctv ? 'text-green-600' : 'text-red-600'}">
+                                                    ${location.cctv ? 'Aktif' : 'Tidak Aktif'}
+                                                </span>
+                                            </p>
+                                            <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded border">
+                                                <div class="flex items-center space-x-1 mb-1">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                    <span class="font-medium">Koordinat:</span>
+                                                </div>
+                                                <div class="font-mono text-xs">
+                                                    <div>Lat: ${location.latitude}</div>
+                                                    <div>Lng: ${location.longitude}</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         ${location.cctv ? `
-                                            <a href="${location.cctv}" target="_blank" 
-                                               class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                                                <span style="margin-right: 8px;">🔗</span>
-                                                Lihat CCTV
-                                            </a>
-                                        ` : '<p class="text-sm text-gray-500">URL CCTV tidak tersedia</p>'}
+                                            <div class="mt-3">
+                                                <a href="${location.cctv}" target="_blank" 
+                                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+                                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                                     </svg>
+                                                     <span class="text-white">Lihat CCTV</span>
+                                                 </a>
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 `);
 
@@ -289,11 +296,13 @@
             const totalLocations = locations.length;
             const activeCCTV = locations.filter(location => location.cctv && location.cctv.trim() !== '').length;
             const inactiveCCTV = totalLocations - activeCCTV;
+            const coveragePercentage = totalLocations > 0 ? Math.round((activeCCTV / totalLocations) * 100) : 0;
             
             // Update DOM elements
             document.getElementById('totalLocations').textContent = totalLocations;
             document.getElementById('activeCCTV').textContent = activeCCTV;
             document.getElementById('inactiveCCTV').textContent = inactiveCCTV;
+            document.getElementById('coverageArea').textContent = coveragePercentage + '%';
             
             // Update last update time
             const now = new Date();

@@ -34,11 +34,8 @@
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center space-x-4">
                         <!-- Logo UNNES -->
-                        <div class="w-10 h-10">
-                            <svg viewBox="0 0 100 100" class="w-full h-full">
-                                <circle cx="50" cy="50" r="45" fill="white" stroke="#667eea" stroke-width="2"/>
-                                <text x="50" y="58" text-anchor="middle" fill="#667eea" font-size="20" font-weight="bold">U</text>
-                            </svg>
+                        <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+                            <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
                         </div>
                         <a href="{{ route('admin.dashboard') }}" class="text-white/80 hover:text-white hover:scale-110 transition-all duration-300 mr-4">
                             <i data-feather="arrow-left" class="w-5 h-5"></i>
