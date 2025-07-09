@@ -16,7 +16,7 @@
 
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
-    
+
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -53,8 +53,8 @@
                 <div class="flex justify-between h-16">
                     <div class="flex items-center space-x-4">
                         <!-- Logo UNNES -->
-                        <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-                            <img src="{{ asset('images/logo-unnes.png') }}" alt="Logo UNNES" class="w-full h-full object-contain">
+                        <div class="">
+
                         </div>
                         <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2 text-white/80 hover:text-white hover:scale-105 transition-all duration-300">
                             <i data-feather="arrow-left" class="w-5 h-5"></i>
@@ -112,7 +112,7 @@
                             <i data-feather="bar-chart-3" class="w-6 h-6 text-white"></i>
                             <h2 class="text-xl font-semibold text-white">Statistik CCTV</h2>
                         </div>
-                        
+
                         <!-- Total Locations -->
                         <div class="mb-4">
                             <div class="glass-effect p-4 rounded-xl border border-blue-300/30 hover:border-blue-300/50 transition-all duration-300">
@@ -284,7 +284,7 @@
                                     <div class="p-3 min-w-64">
                                         <h3 class="font-bold text-lg mb-2">${location.nama_halte}</h3>
                                         <div class="mb-3 space-y-1">
-                                            <p class="text-sm text-gray-600">Status CCTV: 
+                                            <p class="text-sm text-gray-600">Status CCTV:
                                                 <span class="font-semibold ${location.cctv ? 'text-green-600' : 'text-red-600'}">
                                                     ${location.cctv ? 'Aktif' : 'Tidak Aktif'}
                                                 </span>
@@ -305,7 +305,7 @@
                                         </div>
                                         ${location.cctv ? `
                                             <div class="mt-3">
-                                                <button onclick="openCctvModal('${location.nama_halte}', '${location.cctv}')" 
+                                                <button onclick="openCctvModal('${location.nama_halte}', '${location.cctv}')"
                                                     class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
                                                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -320,7 +320,7 @@
                             savedMarkers.push(marker);
                         }
                     });
-                    
+
                     // Update statistics
                     updateStatistics(data);
                 }
@@ -336,13 +336,13 @@
             const activeCCTV = locations.filter(location => location.cctv && location.cctv.trim() !== '').length;
             const inactiveCCTV = totalLocations - activeCCTV;
             const coveragePercentage = totalLocations > 0 ? Math.round((activeCCTV / totalLocations) * 100) : 0;
-            
+
             // Update DOM elements
             document.getElementById('totalLocations').textContent = totalLocations;
             document.getElementById('activeCCTV').textContent = activeCCTV;
             document.getElementById('inactiveCCTV').textContent = inactiveCCTV;
             document.getElementById('coverageArea').textContent = coveragePercentage + '%';
-            
+
             // Update last update time
             const now = new Date();
             const timeString = now.toLocaleString('id-ID', {
@@ -359,7 +359,7 @@
         function addUnnesArea() {
             // Koordinat yang disesuaikan untuk kampus UNNES Sekaran
             const unnesCenter = [-7.050613, 110.398812]; // Koordinat pusat kampus UNNES yang disesuaikan
-            
+
             // Area utama kampus UNNES dengan radius yang lebih sesuai
             const unnesMainArea = L.circle(unnesCenter, {
                 color: '#1e40af',
@@ -382,7 +382,7 @@
                     </div>
                 </div>
             `);
-            
+
             // Area perluasan untuk zona shuttle (radius lebih besar)
             const unnesExtendedArea = L.circle(unnesCenter, {
                 color: '#60a5fa',
@@ -414,10 +414,10 @@
             const title = document.getElementById('cctvModalTitle');
             const content = document.getElementById('cctvContent');
             const urlDisplay = document.getElementById('cctvUrl');
-            
+
             title.textContent = `CCTV ${halteName}`;
             urlDisplay.textContent = cctvUrl;
-            
+
             // Show loading state
             content.innerHTML = `
                 <div class="text-center">
@@ -425,9 +425,9 @@
                     <p class="text-gray-500 dark:text-gray-400">Loading CCTV feed...</p>
                 </div>
             `;
-            
+
             modal.classList.remove('hidden');
-            
+
             // Load CCTV feed
             setTimeout(() => {
                 if (cctvUrl.includes('youtube.com') || cctvUrl.includes('youtu.be')) {
@@ -438,15 +438,15 @@
                     } else if (cctvUrl.includes('youtu.be/')) {
                         videoId = cctvUrl.split('youtu.be/')[1].split('?')[0];
                     }
-                    
+
                     if (videoId) {
                         content.innerHTML = `
-                            <iframe 
-                                width="100%" 
-                                height="384" 
-                                src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            <iframe
+                                width="100%"
+                                height="384"
+                                src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen
                                 class="rounded-lg">
                             </iframe>
@@ -474,11 +474,11 @@
                 } else {
                     // Handle other video URLs or direct streams
                     content.innerHTML = `
-                        <video 
-                            width="100%" 
-                            height="384" 
-                            controls 
-                            autoplay 
+                        <video
+                            width="100%"
+                            height="384"
+                            controls
+                            autoplay
                             muted
                             class="rounded-lg bg-black"
                             onloadstart="this.volume=0.5"
@@ -492,13 +492,13 @@
                 }
             }, 500);
         }
-        
+
         function closeCctvModal() {
             const modal = document.getElementById('cctvModal');
             const content = document.getElementById('cctvContent');
-            
+
             modal.classList.add('hidden');
-            
+
             // Clear content to stop any playing media
             content.innerHTML = `
                 <div class="text-center">
@@ -507,7 +507,7 @@
                 </div>
             `;
         }
-        
+
         function showCctvError(message) {
             const content = document.getElementById('cctvContent');
             content.innerHTML = `
@@ -520,12 +520,12 @@
                 </div>
             `;
         }
-        
+
         // Initialize map when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             addUnnesArea();
-            
+
             // Close modal when clicking outside
             document.addEventListener('click', function(event) {
                 const modal = document.getElementById('cctvModal');
@@ -533,7 +533,7 @@
                     closeCctvModal();
                 }
             });
-            
+
             // Close modal with Escape key
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape') {
