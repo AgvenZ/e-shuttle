@@ -188,7 +188,46 @@
         </div>
     </div>
 
-
+    <!-- CCTV Modal -->
+    <div id="cctvModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="cctvModalTitle" class="text-xl font-bold text-gray-900 dark:text-white">CCTV Feed</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Live monitoring</p>
+                    </div>
+                </div>
+                <button onclick="closeCctvModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200">
+                    <svg class="w-6 h-6 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
+                    <div id="cctvContent" class="w-full h-96 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                            <p class="text-gray-500 dark:text-gray-400">Loading CCTV feed...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Live Stream</span>
+                    </div>
+                    <p id="cctvUrl" class="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono"></p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -211,8 +250,8 @@
 
             // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+                 attribution: '© OpenStreetMap contributors'
+             }).addTo(map);
 
             // Load existing locations
             loadExistingLocations();
@@ -266,13 +305,13 @@
                                         </div>
                                         ${location.cctv ? `
                                             <div class="mt-3">
-                                                <a href="${location.cctv}" target="_blank" 
+                                                <button onclick="openCctvModal('${location.nama_halte}', '${location.cctv}')" 
                                                     class="w-full bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
                                                      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                                      </svg>
                                                      <span class="text-white">Lihat CCTV</span>
-                                                 </a>
+                                                 </button>
                                             </div>
                                         ` : ''}
                                     </div>
@@ -329,10 +368,141 @@
             unnesCircle.bindPopup('<div class="p-2"><strong>Area UNNES</strong><br>Radius 1km dari kampus</div>');
         }
 
+        // CCTV Modal Functions
+        function openCctvModal(halteName, cctvUrl) {
+            const modal = document.getElementById('cctvModal');
+            const title = document.getElementById('cctvModalTitle');
+            const content = document.getElementById('cctvContent');
+            const urlDisplay = document.getElementById('cctvUrl');
+            
+            title.textContent = `CCTV ${halteName}`;
+            urlDisplay.textContent = cctvUrl;
+            
+            // Show loading state
+            content.innerHTML = `
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p class="text-gray-500 dark:text-gray-400">Loading CCTV feed...</p>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            
+            // Load CCTV feed
+            setTimeout(() => {
+                if (cctvUrl.includes('youtube.com') || cctvUrl.includes('youtu.be')) {
+                    // Handle YouTube URLs
+                    let videoId = '';
+                    if (cctvUrl.includes('youtube.com/watch?v=')) {
+                        videoId = cctvUrl.split('v=')[1].split('&')[0];
+                    } else if (cctvUrl.includes('youtu.be/')) {
+                        videoId = cctvUrl.split('youtu.be/')[1].split('?')[0];
+                    }
+                    
+                    if (videoId) {
+                        content.innerHTML = `
+                            <iframe 
+                                width="100%" 
+                                height="384" 
+                                src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                class="rounded-lg">
+                            </iframe>
+                        `;
+                    } else {
+                        showCctvError('Invalid YouTube URL format');
+                    }
+                } else if (cctvUrl.includes('rtsp://') || cctvUrl.includes('rtmp://')) {
+                    // Handle RTSP/RTMP streams
+                    content.innerHTML = `
+                        <div class="text-center py-16">
+                            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">RTSP/RTMP Stream</h4>
+                            <p class="text-gray-500 dark:text-gray-400 mb-4">This stream requires a compatible media player</p>
+                            <a href="${cctvUrl}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                Open in External Player
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    // Handle other video URLs or direct streams
+                    content.innerHTML = `
+                        <video 
+                            width="100%" 
+                            height="384" 
+                            controls 
+                            autoplay 
+                            muted
+                            class="rounded-lg bg-black"
+                            onloadstart="this.volume=0.5"
+                            onerror="showCctvError('Failed to load video stream')">
+                            <source src="${cctvUrl}" type="video/mp4">
+                            <source src="${cctvUrl}" type="video/webm">
+                            <source src="${cctvUrl}" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
+                    `;
+                }
+            }, 500);
+        }
+        
+        function closeCctvModal() {
+            const modal = document.getElementById('cctvModal');
+            const content = document.getElementById('cctvContent');
+            
+            modal.classList.add('hidden');
+            
+            // Clear content to stop any playing media
+            content.innerHTML = `
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p class="text-gray-500 dark:text-gray-400">Loading CCTV feed...</p>
+                </div>
+            `;
+        }
+        
+        function showCctvError(message) {
+            const content = document.getElementById('cctvContent');
+            content.innerHTML = `
+                <div class="text-center py-16">
+                    <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h4 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">Error Loading Stream</h4>
+                    <p class="text-gray-500 dark:text-gray-400">${message}</p>
+                </div>
+            `;
+        }
+        
         // Initialize map when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             addUnnesArea();
+            
+            // Close modal when clicking outside
+            document.addEventListener('click', function(event) {
+                const modal = document.getElementById('cctvModal');
+                if (event.target === modal) {
+                    closeCctvModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    const modal = document.getElementById('cctvModal');
+                    if (!modal.classList.contains('hidden')) {
+                        closeCctvModal();
+                    }
+                }
+            });
         });
     </script>
 </body>
