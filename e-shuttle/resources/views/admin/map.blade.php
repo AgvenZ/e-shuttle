@@ -245,8 +245,8 @@
 
         // Initialize map
         function initMap() {
-            // Create map centered on UNNES (koordinat yang lebih tepat untuk area kampus UNNES)
-            map = L.map('map').setView([-7.050570, 110.414650], 16);
+            // Create map centered on UNNES Sekaran (koordinat yang disesuaikan)
+            map = L.map('map').setView([-7.050613, 110.398812], 15);
 
             // Add OpenStreetMap tiles
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -357,15 +357,55 @@
 
         // Add UNNES area circle
         function addUnnesArea() {
-            // Add circle to show UNNES area
-            const unnesCircle = L.circle([-7.050570, 110.414650], {
-                color: 'blue',
+            // Koordinat yang disesuaikan untuk kampus UNNES Sekaran
+            const unnesCenter = [-7.050613, 110.398812]; // Koordinat pusat kampus UNNES yang disesuaikan
+            
+            // Area utama kampus UNNES dengan radius yang lebih sesuai
+            const unnesMainArea = L.circle(unnesCenter, {
+                color: '#1e40af',
                 fillColor: '#3b82f6',
-                fillOpacity: 0.1,
-                radius: 1000 // 1km radius
+                fillOpacity: 0.15,
+                weight: 2,
+                radius: 800 // 800m radius untuk area utama kampus
             }).addTo(map);
 
-            unnesCircle.bindPopup('<div class="p-2"><strong>Area UNNES</strong><br>Radius 1km dari kampus</div>');
+            unnesMainArea.bindPopup(`
+                <div class="p-3 min-w-48">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <strong class="text-blue-700">Area Kampus UNNES</strong>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                        <div>📍 Sekaran, Gunungpati</div>
+                        <div>📏 Radius: 800m</div>
+                        <div>🎓 Universitas Negeri Semarang</div>
+                    </div>
+                </div>
+            `);
+            
+            // Area perluasan untuk zona shuttle (radius lebih besar)
+            const unnesExtendedArea = L.circle(unnesCenter, {
+                color: '#60a5fa',
+                fillColor: '#93c5fd',
+                fillOpacity: 0.08,
+                weight: 1,
+                dashArray: '5, 5',
+                radius: 1500 // 1.5km radius untuk area perluasan shuttle
+            }).addTo(map);
+
+            unnesExtendedArea.bindPopup(`
+                <div class="p-3 min-w-48">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-3 h-3 bg-blue-300 rounded-full"></div>
+                        <strong class="text-blue-600">Area Layanan E-Shuttle</strong>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                        <div>🚌 Jangkauan layanan shuttle</div>
+                        <div>📏 Radius: 1.5km</div>
+                        <div>🗺️ Meliputi area sekitar kampus</div>
+                    </div>
+                </div>
+            `);
         }
 
         // CCTV Modal Functions

@@ -384,11 +384,67 @@
         });
 
         // Initialize map
-        const map = L.map('map').setView([-7.0051, 110.4381], 13); // Semarang coordinates
+        const map = L.map('map').setView([-7.050613, 110.398812], 15); // UNNES Sekaran coordinates
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+
+        // Add UNNES area circles
+        addUnnesArea();
+
+        // Add UNNES area circle function
+        function addUnnesArea() {
+            // Koordinat yang disesuaikan untuk kampus UNNES Sekaran
+            const unnesCenter = [-7.050613, 110.398812]; // Koordinat pusat kampus UNNES yang disesuaikan
+            
+            // Area utama kampus UNNES dengan radius yang lebih sesuai
+            const unnesMainArea = L.circle(unnesCenter, {
+                color: '#1e40af',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.15,
+                weight: 2,
+                radius: 800 // 800m radius untuk area utama kampus
+            }).addTo(map);
+
+            unnesMainArea.bindPopup(`
+                <div class="p-3 min-w-48">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <strong class="text-blue-700">Area Kampus UNNES</strong>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                        <div>📍 Sekaran, Gunungpati</div>
+                        <div>📏 Radius: 800m</div>
+                        <div>🎓 Area utama kampus</div>
+                    </div>
+                </div>
+            `);
+
+            // Area perluasan layanan E-Shuttle dengan radius lebih besar
+            const unnesServiceArea = L.circle(unnesCenter, {
+                color: '#059669',
+                fillColor: '#10b981',
+                fillOpacity: 0.08,
+                weight: 2,
+                dashArray: '10, 10',
+                radius: 1500 // 1.5km radius untuk jangkauan layanan E-Shuttle
+            }).addTo(map);
+
+            unnesServiceArea.bindPopup(`
+                <div class="p-3 min-w-48">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <strong class="text-green-700">Area Layanan E-Shuttle</strong>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                        <div>🚌 Jangkauan layanan shuttle</div>
+                        <div>📏 Radius: 1.5km</div>
+                        <div>🗺️ Area perluasan kampus</div>
+                    </div>
+                </div>
+            `);
+        }
 
         // Add halte markers
         @if(isset($halte_data) && $halte_data->count() > 0)
