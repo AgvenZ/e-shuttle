@@ -248,11 +248,11 @@
 
         // Initialize map
         function initMap() {
-            // Default coordinates (Jakarta)
-            const defaultLat = isEdit ? parseFloat(document.getElementById('latitude').value) : -6.200000;
-            const defaultLng = isEdit ? parseFloat(document.getElementById('longitude').value) : 106.816666;
+            // Default coordinates (UNNES Sekaran - koordinat yang disesuaikan)
+            const defaultLat = isEdit ? parseFloat(document.getElementById('latitude').value) : -7.050613;
+            const defaultLng = isEdit ? parseFloat(document.getElementById('longitude').value) : 110.398812;
             
-            map = L.map('map').setView([defaultLat, defaultLng], 13);
+            map = L.map('map').setView([defaultLat, defaultLng], 15);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
@@ -262,6 +262,9 @@
             if (isEdit && defaultLat && defaultLng) {
                 marker = L.marker([defaultLat, defaultLng]).addTo(map);
             }
+            
+            // Add UNNES area circles
+            addUnnesArea();
             
             // Add click event to map
             map.on('click', function(e) {
@@ -392,6 +395,47 @@
                 showLoading(false);
             }
         });
+
+        // Add UNNES area circles
+        function addUnnesArea() {
+            // Koordinat pusat kampus UNNES yang disesuaikan
+            const unnesCenter = [-7.050613, 110.398812];
+            
+            // Area kampus utama (radius 800m)
+            const campusArea = L.circle(unnesCenter, {
+                color: '#3b82f6',
+                fillColor: '#3b82f6',
+                fillOpacity: 0.1,
+                radius: 800,
+                weight: 2
+            }).addTo(map);
+            
+            campusArea.bindPopup(`
+                <div class="text-center">
+                    <h3 class="font-bold text-blue-600 mb-2">Area Kampus UNNES</h3>
+                    <p class="text-sm text-gray-600">Radius: 800 meter</p>
+                    <p class="text-xs text-gray-500 mt-1">Area utama kampus</p>
+                </div>
+            `);
+            
+            // Area layanan E-Shuttle yang diperluas (radius 1.5km)
+            const serviceArea = L.circle(unnesCenter, {
+                color: '#10b981',
+                fillColor: '#10b981',
+                fillOpacity: 0.05,
+                radius: 1500,
+                weight: 2,
+                dashArray: '10, 10'
+            }).addTo(map);
+            
+            serviceArea.bindPopup(`
+                <div class="text-center">
+                    <h3 class="font-bold text-green-600 mb-2">Area Layanan E-Shuttle</h3>
+                    <p class="text-sm text-gray-600">Radius: 1.5 kilometer</p>
+                    <p class="text-xs text-gray-500 mt-1">Jangkauan layanan shuttle</p>
+                </div>
+            `);
+        }
 
         // Initialize map when page loads
         document.addEventListener('DOMContentLoaded', function() {
