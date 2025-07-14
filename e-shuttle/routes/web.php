@@ -43,6 +43,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/api/kerumunan', [DashboardController::class, 'getKerumunanData']);
     Route::get('/api/halte', [DashboardController::class, 'getHalteData']);
+    Route::get('/api/export/kerumunan', [DashboardController::class, 'exportKerumunanData']);
     
     // User CRUD API routes
     Route::post('/api/users', [DashboardController::class, 'createUser']);

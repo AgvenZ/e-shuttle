@@ -589,11 +589,12 @@
             try {
                 showToast('info', 'Memproses export data kerumunan...');
                 
-                // Call Python backend export endpoint
-                const response = await fetch('http://localhost:5000/export/kerumunan', {
+                // Call Laravel export endpoint
+                const response = await fetch('/api/export/kerumunan', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 });
 

@@ -69,7 +69,7 @@ class DashboardController extends Controller
             // Transform data to match expected format
             $transformedData = $kerumunanData->map(function ($kerumunan) {
                 return [
-                    'id_kerumunan' => $kerumunan->id_kerumunan,
+                    'id_kerumunan' => $kerumunan->id,
                     'id_halte' => $kerumunan->id_halte,
                     'nama_halte' => $kerumunan->halte ? $kerumunan->halte->nama_halte : 'Unknown',
                     'waktu' => $kerumunan->waktu,
@@ -157,6 +157,50 @@ class DashboardController extends Controller
         ]);
     }
     
+    /**
+     * Export kerumunan data to Excel (CSV format)
+     */
+    public function exportKerumunanData()
+    {
+        try {
+            // Get all kerumunan data with halte information
+            $kerumunanData = Kerumunan::with('halte')
+                ->orderBy('waktu', 'desc')
+                ->get();
+
+            // Prepare CSV content
+            $csvContent = "ID Kerumunan,ID Halte,Nama Halte,Waktu,Jumlah Kerumunan\n";
+            
+            foreach ($kerumunanData as $kerumunan) {
+                $csvContent .= sprintf(
+                    "%s,%s,%s,%s,%s\n",
+                    $kerumunan->id,
+                    $kerumunan->id_halte,
+                    $kerumunan->halte ? $kerumunan->halte->nama_halte : 'N/A',
+                    $kerumunan->waktu,
+                    $kerumunan->jumlah_kerumunan
+                );
+            }
+
+            // Generate filename with current date
+            $filename = 'laporan_kerumunan_' . date('Y-m-d_H-i-s') . '.csv';
+
+            // Return CSV response
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+                
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to export data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Get CCTV statistics from halte data
      */
